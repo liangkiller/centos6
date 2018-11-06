@@ -1,0 +1,119 @@
+#!/bin/bash
+#Anaconda,python2.7
+
+#环境设置:u 不存在的变量报错;e 发生错误退出;pipefail 管道有错退出
+set -euo pipefail
+
+#########要更改变的变量#######
+###软件包下载地址
+DWON_URL=""
+
+###tensorflow版本
+TF_VERSION="1.11.0"
+##############################
+if [ ! -f "/etc/profile.d/path.sh" ]
+then
+cat > /etc/profile.d/path.sh <<EOF
+export PATH=\$PATH:/sbin:/usr/sbin:/usr/local/sbin
+export TMOUT=1800
+if [[ -n "\$SSH_CLIENT"  ]] || [[ -n "\$SSH_CONNECTION" ]];then
+        export TMOUT=3600
+fi
+EOF
+fi
+
+#软件包目录
+cd /var/tmp
+echo "#########Anaconda 下载#########"
+if [ ! -f "Miniconda2-latest-Linux-x86_64.sh" ]; then
+    if [ -n "${DWON_URL}" ]; then
+        wget ${DWON_URL}/Miniconda2-latest-Linux-x86_64.sh
+    else
+        wget https://mirrors.tuna.tsinghua.edu.cn/anaconda/miniconda/Miniconda2-latest-Linux-x86_64.sh
+    fi
+fi
+
+echo "#########Anaconda 安装#########"
+echo "bash Miniconda2-latest-Linux-x86_64.sh"
+echo "安装路径:/usr/local/miniconda2:
+echo "不加入 .bashrc"
+
+bash Miniconda2-latest-Linux-x86_64.sh
+
+
+grep "miniconda" /etc/profile.d/path.sh && ISSET="true" || ISSET="false"
+if [  "$ISSET" == "false" ]; then
+    ###在行末插入
+    sed -i '/PATH/ s/$/:\/usr\/local\/miniconda2\/bin/' /etc/profile.d/path.sh
+    source /etc/profile.d/path.sh
+fi
+
+#echo "#########查询安装信息#########"
+#echo "conda info"
+#conda info
+
+#echo "#########查询当前已经安装的库#########"
+#echo "conda list"
+#conda list
+
+echo "#########添加镜像#########"
+conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free/
+conda config --add channels https://mirrors.ustc.edu.cn/anaconda/pkgs/free/
+#conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/
+#conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/msys2/
+#conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/bioconda/
+#conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/menpo/
+#conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/pytorch/
+conda config --set show_channel_urls yes
+
+echo "#########安装tensorflow#########"
+conda install tensorflow=1.11.0
+
+#echo "#########搜索可用的tensorflow版本#########"
+#echo "conda search tensorflow"
+#anaconda search -t conda tensorflow
+
+#conda search tensorflow
+
+##创建conda环境
+#conda create -n tensorflow python=2.7
+###激活环境
+#source activate tensorflow
+
+###安装或更新批定版本
+#conda install numpy=1.9.3
+#conda update numpy=1.93
+
+###移除包
+#conda remove package_name
+
+###指定频道
+#conda install -c spyder-ide spyder=3.0.0
+#conda install --channel https://conda.anaconda.org/menpo opencv3
+
+###关闭环境
+#source deactivate
+
+#pip 安装 tensorflow
+
+##https://pypi.python.org/pypi/tensorflow
+#cd /var/tmp
+#wget https://files.pythonhosted.org/packages/36/3a/59e68f1ece4eaa73726efebd8ba82b4b59ce31e2d69136297c8d81764892/tensorflow-1.11.0-cp27-cp27mu-manylinux1_x86_64.whl
+
+#pip install --upgrade --ignore-installed tensorflow-1.11.0-cp27-cp27mu-manylinux1_x86_64.whl
+
+###pip uninstall tensorflow
+
+###测试
+cat > t.py <<EOF
+import tensorflow as tf
+hello = tf.constant('Hello, TensorFlow!')
+sess = tf.Session()
+print(sess.run(hello))
+a = tf.constant(10)
+b = tf.constant(32)
+print(sess.run(a + b))
+sess.close()
+EOF
+
+python t.py

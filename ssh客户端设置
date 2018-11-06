@@ -1,0 +1,11 @@
+cat > ~/.ssh/config <<EOF
+Host *
+    ControlPersist yes
+    ControlMaster auto
+    ControlPath ~/.ssh/%r@%h-%p
+    Compression yes
+    User root
+    Port 22
+Host 145
+    HostName 192.168.115.145
+EOF

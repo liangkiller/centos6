@@ -1,0 +1,48 @@
+###创建PV
+##raid盘,分区,整个硬盘;分区要先umount
+pvcreate /dev/sdb1 /dev/sdc1 /dev/sdd1 /dev/sde1 /dev/sdf1 /dev/sdg1 /dev/sdh1 /dev/sdi1 /dev/sdj1 /dev/sdk1 /dev/sdl1
+
+###查看PV
+pvs/pvscan/pvdisplay
+###创建VG;
+##把三个设备组合成一个vg0.vg0 是创建的VG设备的名称，可以随便取
+##类似于硬盘名sdd
+vgcreate vga /dev/sdb1 /dev/sdc1 /dev/sdd1 /dev/sde1 /dev/sdf1
+vgcreate vgb /dev/sdg1 /dev/sdh1
+vgcreate vgc /dev/sdi1 /dev/sdj1 /dev/sdk1 /dev/sdl1
+###查看VG
+vgs/vgscan/vgdisplay
+###创建LV
+##从vg0 中分出5G的空间给lv1;lv1为名字,可随意
+##类似于分区
+lvcreate -L 5G -n lv1 vg0
+#分配剩余空间的100%
+lvcreate --name vga1  -l 100%FREE  vga
+lvcreate --name vgb1  -l 100%FREE  vgb
+lvcreate --name vgc1  -l 100%FREE  vgc
+##查看
+lvscan/lvdisplay
+
+###格式化LV
+mkfs.ext4 /dev/vga/vga1
+mkfs.ext4 /dev/vgb/vgb1
+mkfs.ext4 /dev/vgc/vgc1
+###挂载使用
+mkdir /mnt/lv1
+mount /dev/vg0/lv1 /mnt/lv1/
+###查看
+df -TH
+#将挂载信息写入/etc/fstab
+echo "/dev/vg0/lv1 /mnt/lv1/ ext4 defaults,noatime,nodiratime 0 0" >> /etc/fstab
+
+###设置label
+e2label /dev/vga/vga1 /cache1
+e2label /dev/vgb/vgb1 /cache2
+e2label /dev/vgc/vgc1 /cache3
+----
+LABEL=/cache1           /cache1                 ext4    defaults        0 0
+LABEL=/cache2           /cache2                 ext4    defaults        0 0
+LABEL=/cache3           /cache3                 ext4    defaults        0 0
+====
+
+mount -L /cache1 /cache1
